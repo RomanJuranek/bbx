@@ -9,13 +9,13 @@ The package defines several common operations - resize, aspect ratio changes, ra
 import bbx
 
 bb = (-5,-5,10,10)   # Center at (0,0)
-bb = bbx.set_aspect_ratio(bb, 2, bbox.KEEP_WIDTH)
+bb = bbx.set_aspect_ratio(bb, 2, bbx.KEEP_WIDTH)
 print(bb)  # Prints [[-5.0, -10.0, 10, 20]]
 ```
 
 # Installation
 
-The package is in PyPy so just use `pip`
+The package is in PyPI so just use `pip`
 ```
 pip install bbx
 ```
