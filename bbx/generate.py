@@ -1,5 +1,5 @@
 import numpy as np
-from .core import __normalize_format
+from .core import __normalize_format, __width, __height, resize, move
 
 
 def randomize(bbs, scale_mu=0.1, scale_sigma=0.1, shift_sigma=0.1):

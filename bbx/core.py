@@ -85,23 +85,49 @@ def set_aspect_ratio(bbs, ar=1.0, type=KEEP_AREA):
     return bbs
 
 
-def resize(bbs, ratio=(1, 1)):
+def resize(bbs, ratio=1):
     """
     Resize all bounding boxes in bbs by ratio, keeping their center.
     Input:
-        bb - bounding boxes
-        ratio - scalar or tuple with scale
+        bbs - bounding boxes
+        ratio - scalar, tuple or np.ndarray with resize ratio
     Output:
         np.ndarray with resized bounding boxes
-    """
-    if isinstance(ratio, tuple):
-        rx, ry = ratio
-        if ry is None:
-            ry = rx
-    else:
-        rx = ry = ratio
+    Raises:
+        ValueError when wrong ratio is given
 
+    There are different scenarios for various ratio inputs. When the ratio is
+    scalar, all bounding boxes are resized by the same factor. In case of two
+    scalars (tuple or array), all bbs are resized with different factor for width
+    and height. Vector with length corresponding to the number of bbs, each bounding
+    box is resized by its respective factor (same for width and height). The last
+    case is when the ratio is matrix with two columns and rows corresponding to the
+    number of bbs. Then each bb is resized by its respective factor different for
+    width and height. In other cases, ValueError is raised.
+
+    Example:
+        bbs = [ [0,0,10,10], [10,10,10,10] ]
+        bbx.resize(bbs, 2)      # [ [-5,-5,20,20],[5,5,20,20] ] - Just double the size of both
+        bbx.resize(bbs, [1,2])  # [ [0,-5,10,20], [10,5,10,20] ] - Double the height
+        bbx.resize(bbs, [[1,1],[2,2]])  # [ [0,0,10,10], [5,5,20,20] ] - Reisze only the second
+
+    """
     bbs = __normalize_format(bbs)
+    n = bbs.shape[0]
+
+    r = np.array(ratio)
+    if r.size == 1:
+        rx = ry = r
+    elif r.size == 2:
+        rx,ry = r
+    elif r.size == n:
+        rx = ry = r.flatten()[:,None]
+    elif r.ndim == 2 and r.shape == (n,2):
+        rx = r[:,0]
+        ry = r[:,1]
+    else:
+        raise ValueError("Wrong resize ratio")
+
     w = __width(bbs)
     h = __height(bbs)
     nw, nh = w*rx,  h*ry
@@ -116,11 +142,14 @@ def resize(bbs, ratio=(1, 1)):
 
 
 def scale(bbs, s=1):
+    """
+    Scale all bbs by the given factor
+    """
     bbs = __normalize_format(bbs)
-    return bbs * s
+    return bbs[:,:4] * s
 
 
-def move(bbs, shift=(0, 0)):
+def move(bbs, shift=0):
     bbs = __normalize_format(bbs)
     bbs[:,:2] += shift
     return bbs
