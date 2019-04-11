@@ -9,8 +9,11 @@ KEEP_AREA = 4
 
 
 def __normalize_format(bbs):
-    bbs = np.array(bbs, copy=True)
-    return np.atleast_2d(bbs).astype(np.float32)
+    if not isinstance(bbs, np.ndarray) or bbs.size == 0:
+        bbs = np.array(bbs, copy=True)
+        if bbs.size == 0:
+            bbs = np.empty((0,5), np.float32)
+    return np.atleast_2d(bbs).astype(np.float32, copy=False)
 
 
 def __width(bbs):
