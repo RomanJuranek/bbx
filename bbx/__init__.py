@@ -28,7 +28,7 @@ from .core import set_aspect_ratio, resize, scale, move, center
 from .core import SHRINK, EXPAND, KEEP_AREA, KEEP_WIDTH, KEEP_HEIGHT
 from .metrics import overlap, dist_matrix
 from .nms import groups, nms
-from .generate import randomize
+from .generate import randomize, empty
 from os import path
 
 

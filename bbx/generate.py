@@ -2,6 +2,10 @@ import numpy as np
 from .core import __normalize_format, __width, __height, resize, move
 
 
+def empty(n=0):
+    return np.zeros((n,4),"f")
+
+
 def randomize(bbs, scale_mu=0.1, scale_sigma=0.1, shift_sigma=0.1):
     """
     Randomly modify bb by moving and resize
