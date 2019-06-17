@@ -149,7 +149,8 @@ def scale(bbs, s=1):
     Scale all bbs by the given factor
     """
     bbs = __normalize_format(bbs)
-    return bbs[:,:4] * s
+    bbs[:,:4] * s
+    return bbs
 
 
 def move(bbs, shift=0):
