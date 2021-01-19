@@ -18,7 +18,6 @@ setup(name = "bbx",
     classifiers=[
         'Development Status :: 4 - Beta',
         'License :: OSI Approved :: MIT License',
-        'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 3'
     ],
     project_urls={
@@ -28,7 +27,7 @@ setup(name = "bbx",
     author_email = "rjuranek1983@gmail.com",
     keywords = "bounding box, non maxima suppression",
     packages = ["bbx"],
-    python_requires = ">=2",
+    python_requires = ">=3.6",
     install_requires=["numpy"],
     include_package_data=True,
 )
