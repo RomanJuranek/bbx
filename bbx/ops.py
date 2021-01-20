@@ -56,11 +56,15 @@ def set_aspect_ratio(
 
 
 def resize(boxes:Boxes, scale=1) -> Boxes:
+    if isinstance(scale, tuple):
+        sx, sy = scale
+    else:
+        sx, sy = scale, scale
     cx,cy = np.split(boxes.center(), 2, axis=1)
-    new_width = scale * boxes.width()
-    new_height = scale * boxes.height()
+    new_width = sx * boxes.width()
+    new_height = sy * boxes.height()
     x1,x2 = cx-0.5*new_width,  cx+0.5*new_width
-    y1,y2 = cy-0.5*new_height, cx+0.5*new_height
+    y1,y2 = cy-0.5*new_height, cy+0.5*new_height
     new_boxes = Boxes(np.hstack([x1,y1,x2,y2]), **boxes.fields)
     return new_boxes
 
