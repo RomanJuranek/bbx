@@ -30,7 +30,6 @@ def set_aspect_ratio(
         new_width = width
         new_height = width / ar
     elif action == ARModify.KEEP_HEIGHT:
-        print("d")
         new_width = height * ar
         new_height = height
     elif action == ARModify.EXPAND or action == ARModify.SHRINK:
@@ -47,6 +46,8 @@ def set_aspect_ratio(
         raise ValueError("Wrong action")
     
     # Compose new boxes
+    new_width = np.expand_dims(new_width, axis=1)
+    new_height = np.expand_dims(new_height, axis=1)
     cx,cy = np.split(center, 2, axis=1)
     x1,x2 = cx-0.5*new_width,  cx+0.5*new_width
     y1,y2 = cy-0.5*new_height, cx+0.5*new_height
@@ -61,8 +62,8 @@ def resize(boxes:Boxes, scale=1) -> Boxes:
     else:
         sx, sy = scale, scale
     cx,cy = np.split(boxes.center(), 2, axis=1)
-    new_width = sx * boxes.width()
-    new_height = sy * boxes.height()
+    new_width = sx * np.expand_dims(boxes.width(), axis=1)
+    new_height = sy * np.expand_dims(boxes.height(), axis=1)
     x1,x2 = cx-0.5*new_width,  cx+0.5*new_width
     y1,y2 = cy-0.5*new_height, cy+0.5*new_height
     new_boxes = Boxes(np.hstack([x1,y1,x2,y2]), **boxes.fields)
