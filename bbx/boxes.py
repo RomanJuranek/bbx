@@ -70,6 +70,7 @@ class Boxes:
     def get_field(self, field) -> np.ndarray:
         return self.fields[field]
     def set_field(self, field, value, overwrite=True):
+        value = np.atleast_1d(value)
         self._validate_field(value)
         if not overwrite and field in self.fields:
             raise KeyError(f"Field {field} already present")
