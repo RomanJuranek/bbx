@@ -25,8 +25,26 @@ class Boxes:
     # Modifiers
     def normalized(self, scale=1, shift=(0,0)) -> "Boxes":
         """Scale and shift line segments"""
-        shift = np.tile(np.atleast_2d(shift), 2)
-        B = Boxes(C=(self.C-shift)/scale)
+        # Check scale
+        if isinstance(scale, (int, float)):
+            scale = np.atleast_2d([scale,scale]).astype("f")
+        elif isinstance(scale, (list, tuple, np.ndarray)):
+            sx,sy = scale
+            scale = np.atleast_2d([sx,sy]).astype("f")
+        else:
+            raise TypeError("Scale must be scalar or two element vector")
+
+        # Check shift
+        if isinstance(shift, (list, tuple, np.ndarray)):
+            sx,sy = shift
+            shift = np.atleast_2d([sx,sy]).astype("f")
+        else:
+            raise TypeError("Shift must be scalar or two element vector")
+
+        scale = np.tile(scale, 2)
+        shift = np.tile(shift, 2)
+        print(scale, shift)
+        B = Boxes((self.get()+shift)*scale)
         B.add_fields(**self.fields)
         return B
 
