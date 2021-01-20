@@ -19,7 +19,7 @@ class Boxes:
     def __getitem__(self, indices) -> "Boxes":
         B = Boxes(self.C[indices])  # New instance from coords
         for field, val in self.fields.items():
-            B.set_field(field, val[indices])
+            B.set_field(field, np.atleast_1d(val[indices]))
         return B
 
     # Modifiers
