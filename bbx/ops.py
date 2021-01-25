@@ -50,7 +50,7 @@ def set_aspect_ratio(
     new_height = np.expand_dims(new_height, axis=1)
     cx,cy = np.split(center, 2, axis=1)
     x1,x2 = cx-0.5*new_width,  cx+0.5*new_width
-    y1,y2 = cy-0.5*new_height, cx+0.5*new_height
+    y1,y2 = cy-0.5*new_height, cy+0.5*new_height
     new_boxes = Boxes(np.hstack([x1,y1,x2,y2]), **boxes.fields)
 
     return new_boxes
