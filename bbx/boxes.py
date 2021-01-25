@@ -43,7 +43,7 @@ class Boxes:
 
         scale = np.tile(scale, 2)
         shift = np.tile(shift, 2)
-        print(scale, shift)
+        #print(scale, shift)
         B = Boxes((self.get()+shift)*scale)
         B.add_fields(**self.fields)
         return B
