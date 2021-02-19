@@ -70,21 +70,25 @@ def resize(boxes:Boxes, scale=1) -> Boxes:
     return new_boxes
 
 
-def concatenate(boxes_list) -> Boxes:
+def concatenate(boxes_list:List[Boxes], fields:Collection[str]=None) -> Boxes:
     """Merge multiple boxes to a single instance
     B = A[:10]
     C = A[10:]
     D = concatenate([A, B])
     D should be equal to A
     """
-    # Get fields common to all sub-boxes
-    common_fields = set.intersection( *[set(x.get_fields()) for x in boxes_list] )
+    fields
+    if fields is None:
+        # Get fields common to all sub-boxes
+        common_fields = set.intersection( *[set(x.get_fields()) for x in boxes_list] )
+    else:
+        common_fields = fields
 
     coords = np.concatenate([x.get() for x in boxes_list], axis=0)
-    fields = dict()
+    new_fields = dict()
     for f in common_fields:
-        fields[f] = np.concatenate([x.get_field(f) for x in boxes_list], axis=0)
-    return Boxes(coords, **fields)
+        new_fields[f] = np.concatenate([x.get_field(f) for x in boxes_list], axis=0)
+    return Boxes(coords, **new_fields)
 
 
 def intersection(a:Boxes, b:Boxes) -> np.ndarray:
