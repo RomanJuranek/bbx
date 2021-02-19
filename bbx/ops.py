@@ -1,5 +1,7 @@
-import numpy as np
 from enum import Enum
+from typing import Collection, List
+
+import numpy as np
 
 from .boxes import Boxes
 
@@ -70,6 +72,22 @@ def resize(boxes:Boxes, scale=1) -> Boxes:
     return new_boxes
 
 
+def shift(boxes:Boxes, shift, relative=True):
+    if isinstance(shift, tuple):
+        sx, sy = shift
+    else:
+        sx, sy = shift, shift
+    cx, cy = np.split(boxes.center(), 2, axis=1)
+    w = boxes.width()
+    h = boxes.height()
+    new_cx = cx + w*sx if relative else cx + sx
+    new_cy = cy + h*sy if relative else cy + sy
+    x1,x2 = new_cx-w/2, new_cx+w/2
+    y1,y2 = new_cy-h/2, new_cy+h/2
+    rects = np.concatenate([x1,y1,x2,y2],axis=1)
+    return Boxes(rects, **boxes.fields)
+
+
 def concatenate(boxes_list:List[Boxes], fields:Collection[str]=None) -> Boxes:
     """Merge multiple boxes to a single instance
     B = A[:10]
@@ -117,28 +135,56 @@ def iou(a:Boxes, b:Boxes) -> np.ndarray:
 
 
 def sort_by_field(b:Boxes, field:str, descending=True) -> Boxes:
+    """Return boxes sorted by the value of specified field"""
     order = np.argsort(b.get_field(field))
     if descending:
         order = order[::-1]
     return b[order]
 
-def non_max_suppression(boxes:Boxes, iou_threshold=0.5, score_threshold=0) -> Boxes:
-    idx = boxes.get_field("scores") > score_threshold
-    b = sort_by_field(boxes[idx], "scores")
+
+def overlapping_groups(boxes:Boxes, iou_threshold=1.0, max_groups=None, order_by="scores"):
+    b = sort_by_field(boxes, order_by)
     if len(b) == 0:
         return b
-    valid = np.full(len(b), 1, np.bool)
-    selected = []
+    groups = np.full(len(b), -1, np.int)
+    g = 0
     for i in range(len(b)):
-        if valid[i]:
-            selected.append(i)
-            valid[i] = False
-            valid_indices = np.where(valid)[0]
-            if valid_indices.size == 0:
-                break
-            metric = iou(b[i], b[valid_indices])
-            valid[valid_indices] = np.logical_and(
-                valid[valid_indices],
-                metric[0] < iou_threshold
-            )
-    return b[np.array(selected,"i")]
+        if g == max_groups:
+            break
+        if groups[i] >= 0: continue  # Already assigned
+        groups[i] = g
+        unassigned_indices = np.where(groups==-1)[0]
+        if unassigned_indices.size == 0:  # Everything was assigned
+            break
+        add_to_group = iou(b[i], b[unassigned_indices])[0] > iou_threshold
+        group_indices = unassigned_indices[add_to_group]
+        groups[group_indices] = g
+        g = g+1
+        yield b[group_indices]
+
+
+def _softmax(x):
+    exp_x = np.exp(x)
+    return exp_x / exp_x.sum()
+
+
+def non_max_suppression(boxes:Boxes, iou_threshold=0.5, min_score=0, score_field="scores", reduction="max", max_groups=None, min_group_size=1) -> Boxes:
+    if not reduction in ["max", "mean"]:
+        raise ValueError("reduction must be 'max' or 'mean'")
+    idx = boxes.get_field(score_field) > min_score
+    nms_boxes = []
+    for group_boxes in overlapping_groups(boxes[idx], iou_threshold=iou_threshold, max_groups=max_groups, order_by=score_field):
+        if len(group_boxes) < min_group_size:
+            continue
+        if reduction == "mean":
+            group_scores = group_boxes.get_field(score_field)
+            group_weights = _softmax(group_scores)
+            print(group_boxes.get().shape, group_scores.shape)
+            group_coords = np.average(group_boxes.get(), axis=0, weights=group_weights)
+            nms_boxes.append(Boxes(group_coords, scores=group_scores.max(), size=len(group_boxes)))
+        elif reduction == "max":
+            group_scores = group_boxes.get_field(score_field)
+            k = np.argmax(group_scores)
+            group_coords = group_boxes[k].get()
+            nms_boxes.append(Boxes(group_coords, scores=group_scores.max(), size=len(group_boxes)))
+    return concatenate(nms_boxes) if nms_boxes else Boxes(np.empty((0,4)), scores=[], size=[])
