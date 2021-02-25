@@ -1,9 +1,9 @@
 from pathlib import Path
 
 from .boxes import Boxes
-from .ops import ARModify, concatenate, intersection, iou,\
+from .ops import ARModify, concatenate, intersection, iou, ioa, \
                   non_max_suppression, resize, shift, \
-                  set_aspect_ratio, sort_by_field
+                  set_aspect_ratio, sort_by_field, boxes_in_window
 
 __version__ = None
 

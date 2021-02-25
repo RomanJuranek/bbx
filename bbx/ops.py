@@ -139,6 +139,22 @@ def iou(a:Boxes, b:Boxes) -> np.ndarray:
     return intersect / union
 
 
+def ioa(a:Boxes, b:Boxes) -> np.ndarray:
+    """
+    Calculate pairwise overlaps normalized by the area of 'a'
+    """
+    intersect = intersection(a,b)
+    area_a = np.expand_dims(a.area(),axis=1)
+    return intersect / area_a
+
+
+def boxes_in_window(a:Boxes, window:Boxes, min_overlap=1.0) -> np.ndarray:
+    """
+    Get boxes from 'a' which are in any of 'window' boxes with at least 'min_overlap' area
+    """
+    return ioa(a, window).max(axis=1) >= min_overlap
+
+
 def sort_by_field(b:Boxes, field:str, descending=True) -> Boxes:
     """Return boxes sorted by the value of specified field"""
     order = np.argsort(b.get_field(field))
