@@ -6,11 +6,13 @@ The package provides a class `Boxes` encapsulating a set of bounding boxes. Inte
 ```python
 import bbx
 
-B = bbx.Boxes(np.array([[0,0,10,10]]))  # New instance. Explicit conversion to array required
-B.set_field("score", np.array([1]))  # Set the field
-B.width()  # [[10]]
+B = bbx.Boxes([0,0,10,10])  # New instance
+B.set_field("score", [1])  # Set the field
+B.width()  # [10]
 C = bbx.resize(B, 2)  # Resize and make new instance
 C.get() # [[-5,-5,15,15]]
+C.get_field("score")  # [1]
+C.area()  # [400]
 ```
 
 # But why?
