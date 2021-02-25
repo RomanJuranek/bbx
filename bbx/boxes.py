@@ -99,3 +99,7 @@ class Boxes:
         return field in self.fields
     def get_fields(self):
         return self.fields.keys()
+
+
+def empty() -> Boxes:
+    return Boxes(np.empty((0,4)))
