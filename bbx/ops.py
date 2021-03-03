@@ -78,8 +78,8 @@ def shift(boxes:Boxes, shift, relative=True):
     else:
         sx, sy = shift, shift
     cx, cy = np.split(boxes.center(), 2, axis=1)
-    w = boxes.width()
-    h = boxes.height()
+    w = np.expand_dims(boxes.width(), axis=1)
+    h = np.expand_dims(boxes.height(), axis=1)
     new_cx = cx + w*sx if relative else cx + sx
     new_cy = cy + h*sy if relative else cy + sy
     x1,x2 = new_cx-w/2, new_cx+w/2
