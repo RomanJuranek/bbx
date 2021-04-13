@@ -100,7 +100,31 @@ class Boxes:
     def get_fields(self):
         return self.fields.keys()
 
+    def __repr__(self):
+        header = f"Boxes <{id(self):x}>, n={len(self)} "
+        if self.fields:
+            f = ", ".join(self.fields.keys())
+            header += f"with keys: {f}"
+        header += "\n"
 
+        def box_as_str(x):
+            s = f"{x.get()[0]}, "
+            for k,v in x.fields.items():
+                s += f"{k}={v[0]} "
+            s += "\n"
+            return s
+
+        if len(self) < 20:
+            box_lines = [box_as_str(x) for x in self]
+        else:
+            box_lines = [box_as_str(x) for x in self[:3]]
+            box_lines.append("...\n")
+            box_lines.append(box_as_str(self[-1]))
+
+        to_print = [header] + box_lines
+        return "".join(to_print)
+
+        
 def empty(*fields) -> Boxes:
     """
     Create empty boxes
