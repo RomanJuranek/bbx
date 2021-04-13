@@ -3,7 +3,7 @@ from typing import Collection, List
 
 import numpy as np
 
-from .boxes import Boxes
+from .boxes import Boxes, empty
 
 
 class ARModify(Enum):
@@ -96,10 +96,9 @@ def concatenate(boxes_list:List[Boxes], fields:Collection[str]=None) -> Boxes:
     D should be equal to A
     """
     if not boxes_list:
-        out_boxes = Boxes(np.empty((0,4)))
-        if fields is not None:
-            out_boxes.add_fields(**{f:[] for f in fields})
-        return out_boxes
+        if fields is None:
+            fields = []
+        return empty(*fields)
 
     if fields is None:
         # Get fields common to all sub-boxes

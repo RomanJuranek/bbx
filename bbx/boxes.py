@@ -2,6 +2,9 @@ import numpy as np
 
 
 class Boxes:
+    """
+    A collection of axis-aligned bounding boxes with their properties.
+    """
     def __init__(self, C:np.ndarray, **kwargs):
         C = np.atleast_2d(C)
         if not isinstance(C,np.ndarray):
@@ -103,28 +106,29 @@ class Boxes:
         return self.fields.keys()
 
     def __repr__(self):
+        def box_info(k:int):
+            x1, y1, x2, y2 = self.C[k]
+            s = f"(x1={x1:.1f}, y1={y1:.1f}, x2={x2:.1f}, y2={y2:.1f}) "
+            for key,val in self.fields.items():
+                v = val[k]
+                if isinstance(v, (int,float,np.float,np.integer)):
+                    s += f"{key}={v:.1f} "
+                elif isinstance(v, np.ndarray):
+                    s += f"{key}=[{v.shape}, {v.dtype}] "
+            return s
+
         header = f"Boxes <{id(self):x}>, n={len(self)} "
         if self.fields:
             f = ", ".join(self.fields.keys())
             header += f"with keys: {f}"
-        header += "\n"
-
-        def box_as_str(x):
-            s = f"{x.get()[0]}, "
-            for k,v in x.fields.items():
-                s += f"{k}={v[0]} "
-            s += "\n"
-            return s
-
         if len(self) < 20:
-            box_lines = [box_as_str(x) for x in self]
+            box_lines = [box_info(k) for k in range(len(self))]
         else:
-            box_lines = [box_as_str(x) for x in self[:3]]
-            box_lines.append("...\n")
-            box_lines.append(box_as_str(self[-1]))
-
-        to_print = [header] + box_lines
-        return "".join(to_print)
+            box_lines = [box_info(k) for k in range(3)]
+            box_lines.append("...")
+            box_lines.append(box_info(len(self)-1))
+        lines = [header] + box_lines
+        return "\n".join(lines)
 
         
 def empty(*fields) -> Boxes:
