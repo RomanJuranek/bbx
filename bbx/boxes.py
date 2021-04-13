@@ -17,6 +17,8 @@ class Boxes:
     def __len__(self) -> int:
         return self.C.shape[0]
     def __getitem__(self, indices) -> "Boxes":
+        if isinstance(indices, int):
+            indices = slice(indices, indices+1)
         B = Boxes(self.C[indices])  # New instance from coords
         for field, val in self.fields.items():
             B.set_field(field, np.atleast_1d(val[indices]))
