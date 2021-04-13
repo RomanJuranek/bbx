@@ -101,5 +101,10 @@ class Boxes:
         return self.fields.keys()
 
 
-def empty() -> Boxes:
-    return Boxes(np.empty((0,4)))
+def empty(*fields) -> Boxes:
+    """
+    Create empty boxes
+    """
+    coords = np.empty((0,4), np.float32)
+    extra_fields = {name:[] for name in fields}
+    return Boxes(coords, **extra_fields)
