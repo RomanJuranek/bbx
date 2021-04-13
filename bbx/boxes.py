@@ -18,13 +18,12 @@ class Boxes:
         self.fields = dict()
         self.add_fields(**kwargs)
     def __len__(self) -> int:
-        return self.C.shape[0]
+        return int(self.C.shape[0])
     def __getitem__(self, indices) -> "Boxes":
-        if isinstance(indices, int):
-            indices = slice(indices, indices+1)
-        B = Boxes(self.C[indices])  # New instance from coords
+        k = [indices] if isinstance(indices, int) else indices
+        B = Boxes(self.C[k])  # New instance from coords
         for field, val in self.fields.items():
-            B.set_field(field, np.atleast_1d(val[indices]))
+            B.set_field(field, np.atleast_1d(val[k]))
         return B
 
     # Modifiers
@@ -109,12 +108,12 @@ class Boxes:
         def box_info(k:int):
             x1, y1, x2, y2 = self.C[k]
             s = f"(x1={x1:.1f}, y1={y1:.1f}, x2={x2:.1f}, y2={y2:.1f}) "
-            for key,val in self.fields.items():
+            for key, val in self.fields.items():
                 v = val[k]
-                if isinstance(v, (int,float,np.float,np.integer)):
-                    s += f"{key}={v:.1f} "
-                elif isinstance(v, np.ndarray):
+                if isinstance(v, np.ndarray):  # For arrays
                     s += f"{key}=[{v.shape}, {v.dtype}] "
+                else:
+                    s += f"{key}={v} "
             return s
 
         header = f"Boxes <{id(self):x}>, n={len(self)} "
