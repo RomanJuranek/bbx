@@ -115,8 +115,9 @@ class Boxes:
         self.fields.pop(field)
     def has_field(self, field) -> bool:
         return field in self.fields
-    def get_fields(self):
+    def fields_names(self):
         return self.fields.keys()
+    get_fields = fields_names  # compatibility
 
     def __repr__(self):
         def box_info(k:int):
@@ -151,3 +152,10 @@ def empty(*fields) -> Boxes:
     coords = np.empty((0,4), np.float32)
     extra_fields = {name:[] for name in fields}
     return Boxes(coords, **extra_fields)
+
+
+def empty_like(other:Boxes) -> Boxes:
+    """
+    New empty Boxes with same fields as `other`
+    """
+    return empty(*other.fields_names())
