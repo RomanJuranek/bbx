@@ -63,6 +63,20 @@ class Boxes:
         return self.C[:,:2]
     def bottom_right(self) -> np.ndarray:
         return self.C[:,2:]
+    def corners(self) -> np.ndarray:
+        """ Get cordinates of box corners
+        
+        Output
+        ------
+        tl,tr,br,bl : ndarray
+            Each is (N,2) matrix with (x,y) coordinates for
+            top-left, top-right, bottom-right, bottom-left corners
+        """
+        x1, y1, x2, y2 = self.coordinates()
+        return np.hstack([x1, y1]),\
+               np.hstack([x2, y1]),\
+               np.hstack([x2, y2]),\
+               np.hstack([x1, y2])
     def center(self) -> np.ndarray:
         """Get central points of lines"""
         return (self.top_left() + self.bottom_right()) / 2
@@ -116,7 +130,7 @@ class Boxes:
                     s += f"{key}={v} "
             return s
 
-        header = f"Boxes <{id(self):x}>, n={len(self)} "
+        header = f"{self.__class__} at {id(self):x}, n={len(self)} "
         if self.fields:
             f = ", ".join(self.fields.keys())
             header += f"with keys: {f}"
