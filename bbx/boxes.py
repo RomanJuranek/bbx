@@ -105,6 +105,9 @@ class Boxes:
             self.set_field(field, value)
     def get_field(self, field) -> np.ndarray:
         return self.fields[field]
+    def set_fields(self, overwrite=True, **fields):
+        for k,v in fields.items():
+            self.set_field(k, v, overwrite=overwrite)
     def set_field(self, field, value, overwrite=True):
         value = np.atleast_1d(value)
         self._validate_field(value)
