@@ -30,9 +30,9 @@ class Boxes:
         y1, y2 = np.minimum(b,d), np.maximum(b,d)
         self.C = np.hstack([x1,y1,x2,y2])
         self.fields = dict()
-        self.add_fields(**kwargs)
+        self.set_fields(**kwargs)
     def __len__(self) -> int:
-        return int(self.C.shape[0])
+        return len(self.C)
     def __getitem__(self, indices) -> "Boxes":
         k = [indices] if isinstance(indices, int) else indices
         B = Boxes(self.C[k])  # New instance from coords
@@ -116,25 +116,30 @@ class Boxes:
     def _validate_field(self, v:np.ndarray) -> bool:
         if not isinstance(v, np.ndarray):
             raise TypeError("Only numpy arrays are supported for fields")
-        if v.shape[0] != len(self):
-            raise ValueError(f"Expected {len(self)} items, {v.shape[0]} passed")
-    def add_fields(self, **fields):
-        """Add multiple fields to the instance"""
-        for field,value in fields.items():
-            self.set_field(field, value)
-    def get_field(self, field) -> np.ndarray:
-        return self.fields[field]
+        if len(v) != len(self):
+            raise ValueError(f"Expected {len(self)} items, {len(v)} passed")
+    # Setters
     def set_fields(self, overwrite=True, **fields):
         for k,v in fields.items():
             self.set_field(k, v, overwrite=overwrite)
+    add_fields = set_fields
+
     def set_field(self, field, value, overwrite=True):
         value = np.atleast_1d(value)
         self._validate_field(value)
         if not overwrite and field in self.fields:
             raise KeyError(f"Field {field} already present")
         self.fields[field] = value.copy()
+
+    # Getters
+    def get_field(self, field) -> np.ndarray:
+        return self.fields[field]
+    
+    # Deletion
     def del_field(self, field):
         self.fields.pop(field)
+
+    # Information
     def has_field(self, field) -> bool:
         return field in self.fields
     def fields_names(self):
