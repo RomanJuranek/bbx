@@ -1,4 +1,18 @@
+from typing import Iterable
 import numpy as np
+
+
+def expand_parameter(x):
+    if isinstance(x, Iterable):
+        if len(x) != 2:
+            raise ValueError("Expected iterable with 2 items")
+        if isinstance(x, np.ndarray):
+            assert(x.ndim == 1)
+        a, b = x
+        return a, b
+    else:
+        assert(isinstance(x, (int, float)))
+        return x, x
 
 
 class Boxes:
@@ -27,35 +41,40 @@ class Boxes:
         return B
 
     # Modifiers
-    def normalized(self, scale=1, shift=(0,0)) -> "Boxes":
-        """Scale and shift line segments"""
-        # Check scale
-        if isinstance(scale, (int, float)):
-            scale = np.atleast_2d([scale,scale]).astype("f")
-        elif isinstance(scale, (list, tuple, np.ndarray)):
-            sx,sy = scale
-            scale = np.atleast_2d([sx,sy]).astype("f")
-        else:
-            raise TypeError("Scale must be scalar or two element vector")
+    def resize(self, scale=1) -> "Boxes":
+        """Resize boxes and keep center"""
+        sx, sy = expand_parameter(scale)
+        cx,cy = np.split(self.center(), 2, axis=1)
+        new_width = sx * np.expand_dims(self.width(), axis=1)
+        new_height = sy * np.expand_dims(self.height(), axis=1)
+        x1,x2 = cx-0.5*new_width,  cx+0.5*new_width
+        y1,y2 = cy-0.5*new_height, cy+0.5*new_height
+        return Boxes(np.hstack([x1,y1,x2,y2]), **self.fields)
 
-        # Check shift
-        if isinstance(shift, (list, tuple, np.ndarray)):
-            sx,sy = shift
-            shift = np.atleast_2d([sx,sy]).astype("f")
-        else:
-            raise TypeError("Shift must be scalar or two element vector")
+    def shift(self, shift, relative=False) -> "Boxes":
+        sx, sy = expand_parameter(shift)
+        cx, cy = np.split(self.center(), 2, axis=1)
+        w = np.expand_dims(self.width(), axis=1)
+        h = np.expand_dims(self.height(), axis=1)
+        new_cx = cx + w*sx if relative else cx + sx
+        new_cy = cy + h*sy if relative else cy + sy
+        x1,x2 = new_cx-w/2, new_cx+w/2
+        y1,y2 = new_cy-h/2, new_cy+h/2
+        return Boxes(np.hstack([x1,y1,x2,y2]), **self.fields)
 
-        scale = np.tile(scale, 2)
-        shift = np.tile(shift, 2)
-        #print(scale, shift)
-        B = Boxes((self.get()+shift)*scale)
-        B.add_fields(**self.fields)
-        return B
+    def scale(self, scale=1) -> "Boxes":
+        sx, sy = expand_parameter(scale)
+        x1, y1, x2, y2 = self.coordinates()
+        return Boxes(np.hstack([sx*x1,sy*y1,sx*x2,sy*y2]), **self.fields)
+
+    def normalized(self, shift=0, scale=1) -> "Boxes":
+        return self.shift(shift).scale(scale)
 
     # Properties
-    def get(self) -> np.ndarray:
+    def numpy(self) -> np.ndarray:
         """Get coordinates as (N,4) matrix"""
         return self.C
+    get = numpy  # backward compatibility
     def coordinates(self):
         """Returns x1,y1,x2,y2 as 4 arrays (N,1)"""
         return np.split(self.C, 4, axis=1)

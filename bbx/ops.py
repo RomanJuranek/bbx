@@ -19,6 +19,9 @@ def set_aspect_ratio(
     ar:float=1,
     action:ARModify=ARModify.KEEP_WIDTH) -> Boxes:
 
+    if action not in set(ARModify):
+        raise ValueError("Wrong action")
+
     center = boxes.center()
     width = boxes.width()
     height = boxes.height()
@@ -44,8 +47,6 @@ def set_aspect_ratio(
         new_width[ mask], new_height[ mask] = width, width/ar  # keep width
         new_width[~mask], new_height[~mask] = height*ar, height  # keep height
         pass
-    else:
-        raise ValueError("Wrong action")
     
     # Compose new boxes
     new_width = np.expand_dims(new_width, axis=1)
@@ -59,33 +60,11 @@ def set_aspect_ratio(
 
 
 def resize(boxes:Boxes, scale=1) -> Boxes:
-    if isinstance(scale, tuple):
-        sx, sy = scale
-    else:
-        sx, sy = scale, scale
-    cx,cy = np.split(boxes.center(), 2, axis=1)
-    new_width = sx * np.expand_dims(boxes.width(), axis=1)
-    new_height = sy * np.expand_dims(boxes.height(), axis=1)
-    x1,x2 = cx-0.5*new_width,  cx+0.5*new_width
-    y1,y2 = cy-0.5*new_height, cy+0.5*new_height
-    new_boxes = Boxes(np.hstack([x1,y1,x2,y2]), **boxes.fields)
-    return new_boxes
+    return boxes.resize(scale)
 
 
-def shift(boxes:Boxes, shift, relative=True):
-    if isinstance(shift, tuple):
-        sx, sy = shift
-    else:
-        sx, sy = shift, shift
-    cx, cy = np.split(boxes.center(), 2, axis=1)
-    w = np.expand_dims(boxes.width(), axis=1)
-    h = np.expand_dims(boxes.height(), axis=1)
-    new_cx = cx + w*sx if relative else cx + sx
-    new_cy = cy + h*sy if relative else cy + sy
-    x1,x2 = new_cx-w/2, new_cx+w/2
-    y1,y2 = new_cy-h/2, new_cy+h/2
-    rects = np.concatenate([x1,y1,x2,y2],axis=1)
-    return Boxes(rects, **boxes.fields)
+def shift(boxes:Boxes, shift=0, relative=False):
+    return boxes.shift(shift, relative)
 
 
 def concatenate(boxes_list:List[Boxes], fields:Collection[str]=None) -> Boxes:
