@@ -1,8 +1,6 @@
-from typing import Any, Iterable, List, Union
+from typing import Any, Iterable
 
 import numpy as np
-
-from .ops import concatenate
 
 
 def expand_parameter(x):
@@ -53,11 +51,11 @@ class Boxes:
         for points in iterable:
             pts = np.array(points, np.float)
             pts:np.ndarray
-            assert(pts.ndim==2 and pts.shape[1]==1)
+            assert(pts.ndim==2 and pts.shape[1]==2)
             x1,y1 = pts.min(0)
             x2,y2 = pts.max(0)
-            boxes.append(Boxes([x1,y1,x2,y2]))
-        return concatenate(boxes)
+            boxes.append([x1,y1,x2,y2])
+        return Boxes(boxes)
 
     # Modifiers
     def resize(self, scale=1) -> "Boxes":
