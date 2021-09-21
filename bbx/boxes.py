@@ -1,5 +1,8 @@
-from typing import Iterable
+from typing import Any, Iterable, List, Union
+
 import numpy as np
+
+from .ops import concatenate
 
 
 def expand_parameter(x):
@@ -39,6 +42,22 @@ class Boxes:
         for field, val in self.fields.items():
             B.set_field(field, np.atleast_1d(val[k]))
         return B
+
+    @staticmethod
+    def from_numpy(x:np.ndarray) -> "Boxes":
+        return Boxes(x)
+
+    @staticmethod
+    def from_points(iterable:Iterable[Any]) -> "Boxes":
+        boxes = []
+        for points in iterable:
+            pts = np.array(points, np.float)
+            pts:np.ndarray
+            assert(pts.ndim==2 and pts.shape[1]==1)
+            x1,y1 = pts.min(0)
+            x2,y2 = pts.max(0)
+            boxes.append(Boxes([x1,y1,x2,y2]))
+        return concatenate(boxes)
 
     # Modifiers
     def resize(self, scale=1) -> "Boxes":
